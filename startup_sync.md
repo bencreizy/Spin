@@ -1,4 +1,4 @@
-ÿ# Antigravity Sync: Mandatory Session Initialization Protocol
+Ã¿# Antigravity Sync: Mandatory Session Initialization Protocol
 
 ## AGENT START-UP PROTOCOL
 Every logic cycle and session start MUST begin with a synchronization handshake.
@@ -28,4 +28,4 @@ If any component is missing or inactive, run:
 `python C:\Users\User\qubit_bootloader.py`
 `python C:\Users\User\.antigravity\custom_tools\dual_lobe_orchestrator.py`
 `python C:\Users\User\.antigravity\custom_tools\god_lock_sig.py`
-ÿ2Nfile:///c:/Users/User/.antigravity/knowledge/system_middleware/startup_sync.md
+Ã¿2Nfile:///c:/Users/User/.antigravity/knowledge/system_middleware/startup_sync.md
