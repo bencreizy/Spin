@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CIGOL Chat Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #0ff; }
+        input, button { padding: 10px; margin: 5px; }
+        #output { border: 1px solid #0ff; padding: 10px; margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>CIGOL Backend Test</h1>
+    <input type="text" id="prompt" placeholder="Type your message..." style="width: 300px;">
+    <button onclick="sendMessage()">Send</button>
+    <div id="output">Waiting for input...</div>
+
+    <script>
+        async function sendMessage() {
+            const prompt = document.getElementById('prompt').value;
+            const output = document.getElementById('output');
+            
+            output.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        context: 'Science'
+                    })
+                });
+                
+                const data = await response.json();
+                output.textContent = 'Response:\n\n' + data.response;
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
