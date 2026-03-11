@@ -1,0 +1,90 @@
+ìimport requests
+import json
+import time
+import os
+
+# --- CONFIGURATION ---
+ALPHASEC_API_BASE = "https://api.alphasec.trade"
+KAIA_RPC = "https://public-en.node.kaia.io"
+LOG_FILE = r"C:\Users\User\Desktop\Antigravity_System\ion_boot.log"
+
+SEQUENCER_INBOX = "0xe011c8DeaB65F2e299D5fbaa3808E953Ca93ee42"
+BRIDGE_ADDRESS = "0xF31CE581A8440f0f4850eDEb343a28372572a088"
+
+# --- HELPER FUNCTIONS ---
+def log_alert(message):
+    print(f"[ALERT] {message}")
+    with open(LOG_FILE, "a") as f:
+        f.write(f"\n[ALERT] {time.strftime('%Y-%m-%d %H:%M:%S')} - {message}")
+
+def get_orderbook(symbol="KAIA/USDT"):
+    try:
+        # Trying common endpoints
+        for path in ["/v1/orderbook", "/orderbook", "/api/v1/orderbook"]:
+            response = requests.get(f"{ALPHASEC_API_BASE}{path}?symbol={symbol}", timeout=5)
+            if response.status_code == 200:
+                return response.json()
+    except Exception as e:
+        print(f"Error fetching orderbook: {e}")
+    return None
+
+def check_kaia_rpc(address):
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "eth_getBalance",
+        "params": [address, "latest"],
+        "id": 1
+    }
+    try:
+        response = requests.post(KAIA_RPC, json=payload, timeout=5)
+        return response.json()
+    except Exception as e:
+        print(f"Error querying RPC: {e}")
+    return None
+
+def scan_logic_fractures():
+    print("[+] Starting AlphaSec Logic-Fracture Scan...")
+    
+    # 1. Depth-Collision Check
+    ob = get_orderbook()
+    if ob:
+        bids = ob.get("bids", [])
+        asks = ob.get("asks", [])
+        if bids and asks:
+            best_bid = float(bids[0][0])
+            best_ask = float(asks[0][0])
+            print(f"[*] Best Bid: {best_bid}, Best Ask: {best_ask}")
+            if best_bid >= best_ask:
+                log_alert("Delta 0.0 - Orderbook Spread Collision Detected!")
+    
+    # 2. RPC Invariant Check
+    seq_data = check_kaia_rpc(SEQUENCER_INBOX)
+    bridge_data = check_kaia_rpc(BRIDGE_ADDRESS)
+    
+    if seq_data and bridge_data:
+        # Simulating logic fracture detection via state discrepancy
+        # In a real scenario, we'd check for specific state variables or logs
+        print("[*] Sequencer Inbox & Bridge State retrieved.")
+        
+        # Placeholder for complex invariant logic
+        if "result" in seq_data and int(seq_data["result"], 16) == 0:
+             # Just an example trigger
+             pass
+
+    # 3. Monitor Log for Sync Tokens
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "r") as f:
+            lines = f.readlines()
+            for line in reversed(lines[-10:]):
+                if "[SYNC] Coherence Token:" in line:
+                    token = line.split(":")[-1].strip()
+                    print(f"[+] Captured Sync Token: {token}")
+                    if "a5e1a234" in token: # Example segment target
+                        log_alert("State-Overlap - Critical Sync Collision!")
+                        break
+
+if __name__ == "__main__":
+    while True:
+        scan_logic_fractures()
+        time.sleep(30) # Scan every 30 seconds
+ì28file:///c:/Users/User/Desktop/alphasec_logic_fracture.py

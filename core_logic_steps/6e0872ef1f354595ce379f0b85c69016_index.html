@@ -1,0 +1,1426 @@
+��<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; img-src 'self' data: https: file:; style-src 'self' 'unsafe-inline';">
+    <title>Project Omega: Void Handshake</title>
+    <style>
+        /* --- CORE ARCHITECTURE --- */
+        :root {
+            --bg: #050505;
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 229, 255, 0.4);
+            --secondary: #0059b3;
+            --panel-bg: rgba(10, 10, 15, 0.95);
+            --text-dim: #5c6b7f;
+            --loader-size: 240px;
+            --loader-duration: 2.5s;
+            --loader-bg: linear-gradient(0deg, rgba(0, 240, 255, 0.1) 0%, rgba(0, 143, 255, 0.15) 100%);
+        }
+
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: #000;
+            background-color: transparent;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            /* Hide default scrollbars */
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
+        }
+
+        /* Hide scrollbars for Chrome, Safari, Opera */
+        *::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        /* Cinematic Scroll Indicator */
+        #void-scroll-track {
+            position: fixed;
+            right: 8px;
+            top: 10vh;
+            width: 2px;
+            height: 80vh;
+            background: rgba(0, 240, 255, 0.05);
+            /* Nearly invisible track */
+            z-index: 9999;
+            pointer-events: none;
+            border-radius: 10px;
+        }
+
+        #void-scroll-thumb {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 6px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 3px;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+
+
+        /* From Uiverse.io by jaykdoe */
+        /* Cinematic Deep Space Background */
+        .container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100vw;
+            background-color: #0a0a0f;
+            /* Fallback solid color */
+            background-image:
+                radial-gradient(ellipse at top, #1a2332 0%, #0a0a0f 50%),
+                radial-gradient(circle at center, rgba(27, 39, 53, 0.2) 0%, rgba(9, 10, 15, 0.9) 100%);
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            z-index: -1;
+            animation: slowZoom 60s ease-in-out infinite alternate;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            /* Performance hint for animation */
+        }
+
+        @keyframes slowZoom {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes animStar {
+            from {
+                transform: translateY(0px);
+            }
+
+            to {
+                transform: translateY(-2000px);
+            }
+        }
+
+        #stars {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: transparent;
+            border-radius: 50%;
+            box-shadow: 1117px 966px #fff, 1629px 97px #fff, 1046px 1196px #fff, 810px 1092px #fff, 722px 976px #fff, 406px 18px #fff, 1665px 1860px #fff, 1758px 1628px #fff, 1183px 463px #fff, 564px 239px #fff;
+            animation: animStar 100s linear infinite;
+            transform: translateZ(0);
+        }
+
+        #stars2 {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: transparent;
+            border-radius: 50%;
+            box-shadow: 1345px 1990px #fff, 1919px 1803px #fff, 659px 18px #fff, 1731px 1959px #fff, 332px 1216px #fff, 1913px 788px #fff, 80px 712px #fff;
+            animation: animStar 120s linear infinite;
+            transform: translateZ(0);
+        }
+
+        #stars3 {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: transparent;
+            border-radius: 50%;
+            box-shadow: 235px 1082px #fff, 299px 1086px #fff, 1017px 1602px #fff, 1950px 626px #fff, 1306px 132px #fff, 1358px 1618px #fff, 1873px 1718px #fff, 1447px 940px #fff;
+            animation: animStar 150s linear infinite;
+            transform: translateZ(0);
+        }
+
+        #stars:after,
+        #stars2:after,
+        #stars3:after {
+            content: " ";
+            position: absolute;
+            top: 2000px;
+            width: inherit;
+            height: inherit;
+            background: transparent;
+            box-shadow: inherit;
+        }
+
+        @keyframes introFadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* --- PLANETARY VOID --- */
+        .planet-container {
+            position: absolute;
+            bottom: -250px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .planet {
+            border-radius: 50%;
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 143, 255, 0.1);
+            position: relative;
+        }
+
+        .saturn-rings {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(75deg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring-digit {
+            position: absolute;
+            font-family: monospace;
+            font-size: 9px;
+            color: #00f0ff;
+            text-shadow: 0 0 5px #00f0ff;
+        }
+
+        @keyframes floatUp {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-160vh);
+            }
+        }
+
+
+        /* --- HUD HUD INTERFACE --- */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+                linear-gradient(to right, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.4;
+            transform: translateZ(0);
+            animation: scanlineFlicker 0.2s infinite;
+        }
+
+        @keyframes scanlineFlicker {
+            0% {
+                opacity: 0.38;
+            }
+
+            50% {
+                opacity: 0.42;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        .site-logo {
+            width: 130px;
+            margin: 40px 0 25px;
+            position: relative;
+            z-index: 15;
+            animation: logo-float 4s ease-in-out infinite;
+        }
+
+        @keyframes logo-float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                filter: drop-shadow(0 0 15px var(--primary-glow));
+            }
+
+            50% {
+                transform: translateY(-15px);
+                filter: drop-shadow(0 0 35px var(--primary));
+            }
+        }
+
+
+        .machine-grid {
+            width: 95vw;
+            max-width: 540px;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+            margin-bottom: 20px;
+            transform-style: preserve-3d;
+        }
+
+        .slots-row {
+            display: flex;
+            justify-content: center;
+            height: 130px;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            border: none;
+            transform-style: preserve-3d;
+        }
+
+        .row-highlight {
+            background: rgba(0, 240, 255, 0.08);
+            border-radius: 20px;
+            z-index: 10;
+            transform: translateZ(50px);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.05);
+        }
+
+
+        /* --- 3D CRYPTEX TUMBLER --- */
+        .cryptex-wrapper {
+            display: flex;
+            align-items: center;
+            perspective: 1500px;
+            transform: scale(0.6);
+            transform-origin: center center;
+            transform-style: preserve-3d;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cryptex-wrapper:hover {
+            transform: scale(0.6) translateY(-10px);
+            filter: drop-shadow(0 10px 30px rgba(0, 240, 255, 0.4));
+        }
+
+        .end-cap {
+            position: relative;
+            width: 30px;
+            height: 140px;
+            z-index: 15;
+        }
+
+        .end-cap-left {
+            background: linear-gradient(90deg, #1a1a1a, #3a3a3a, #1a1a1a);
+            border-radius: 12px 0 0 12px;
+            box-shadow: inset 2px 0 8px rgba(255, 255, 255, 0.1);
+        }
+
+        .end-cap-right {
+            background: linear-gradient(90deg, #1a1a1a, #4a4a4a, #1a1a1a);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .tumbler-assembly {
+            display: flex;
+            align-items: center;
+            transform-style: preserve-3d;
+            transform: rotateX(8deg) rotateY(-2deg);
+        }
+
+        .tumbler-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            perspective: 800px;
+            transform-style: preserve-3d;
+        }
+
+        .glow-strip {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+        }
+
+        .glow-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: #00e5ff;
+            box-shadow: 0 0 6px 1px #00e5ff;
+            display: none;
+            /* Remove blue lights */
+        }
+
+        .tumbler {
+            position: relative;
+            width: 68px;
+            height: 70px;
+            margin: 0 4px;
+            transform-style: preserve-3d;
+            transform: rotateX(var(--rotation, 0deg));
+            transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .tumbler-face {
+            position: absolute;
+            width: 100%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: visible;
+        }
+
+        .tumbler-face[data-face="0"] {
+            transform: rotateX(0deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="1"] {
+            transform: rotateX(36deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="2"] {
+            transform: rotateX(72deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="3"] {
+            transform: rotateX(108deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="4"] {
+            transform: rotateX(144deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="5"] {
+            transform: rotateX(180deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="6"] {
+            transform: rotateX(216deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="7"] {
+            transform: rotateX(252deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="8"] {
+            transform: rotateX(288deg) translateZ(107.7px);
+        }
+
+        .tumbler-face[data-face="9"] {
+            transform: rotateX(324deg) translateZ(107.7px);
+        }
+
+        .number-cell {
+            width: 68px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(160deg, #3a3a3a, #1a1a1a);
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: #00e5ff;
+            text-shadow: 0 0 10px #00e5ff;
+        }
+
+
+        /* --- BLENDED HUD INPUT CARD --- */
+        .card {
+            width: 95vw;
+            max-width: 762px;
+            height: 320px;
+            padding: 1px;
+            border-radius: 2rem;
+            background: linear-gradient(135deg, rgba(0, 89, 179, 0.3), rgba(0, 240, 255, 0.3));
+            position: relative;
+            z-index: 10;
+            margin: 20px auto;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 10px 40px rgba(0, 240, 255, 0.4);
+        }
+
+        .card-info {
+            background: radial-gradient(circle at center, #0a0a0f 0%, #050508 100%);
+            width: 100%;
+            height: 100%;
+            border-radius: 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 1);
+        }
+
+        .card-textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #00f0ff;
+            font-size: 1.2rem;
+            padding: 30px;
+            opacity: 0;
+            position: absolute;
+            z-index: 2;
+            resize: none;
+            transition: opacity 0.5s;
+            font-family: 'Courier New', monospace;
+            display: none;
+        }
+
+        .card-textarea.active {
+            opacity: 1;
+            display: block;
+        }
+
+        .plusButton {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 20;
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+
+        /* --- WAVE LOADER --- */
+        .loader-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            transition: opacity 0.5s ease;
+            cursor: pointer;
+        }
+
+        .loader-wrapper.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: var(--loader-size);
+            aspect-ratio: 1;
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loader .box {
+            position: absolute;
+            border-radius: 50%;
+            animation: ripple var(--loader-duration) infinite ease-in-out;
+            inset: var(--inset);
+            animation-delay: calc(var(--i) * 0.15s);
+            z-index: calc(var(--i) * -1);
+            pointer-events: all;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 240, 255, 0.25);
+        }
+
+        .loader .box:nth-child(1) {
+            background: rgba(0, 255, 255, 0.2);
+        }
+
+        .loader .box:nth-child(2) {
+            background: rgba(0, 229, 255, 0.18);
+        }
+
+        .loader .box:nth-child(3) {
+            background: rgba(0, 206, 209, 0.16);
+        }
+
+        .loader .box:nth-child(4) {
+            background: rgba(0, 191, 255, 0.14);
+        }
+
+        .loader .box:nth-child(5) {
+            background: rgba(0, 147, 255, 0.12);
+        }
+
+        .loader .box:last-child {
+            filter: blur(35px);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .loader .logo {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-content: center;
+            padding: 10%;
+        }
+
+        .loader .logo svg {
+            fill: #00f0ff;
+            width: 100%;
+            animation: color-change var(--loader-duration) infinite ease-in-out;
+            filter: drop-shadow(0 0 15px #00f0ff);
+        }
+
+        @keyframes ripple {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            65% {
+                transform: scale(1.4);
+                opacity: 0.2;
+            }
+        }
+
+        @keyframes color-change {
+
+            0%,
+            100% {
+                fill: #00f0ff;
+            }
+
+            50% {
+                fill: #ffffff;
+            }
+        }
+
+
+        /* --- OMEGA VAULT COMPONENT STYLES --- */
+        .omega-vault-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            margin-top: -20px;
+        }
+
+        .omega-vault {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .omega-vault:hover {
+            transform: translateY(-10px);
+            filter: drop-shadow(0 10px 40px rgba(0, 240, 255, 0.5));
+        }
+
+        .omega-vault:active {
+            transform: translateY(-5px);
+        }
+
+        .omega-vault-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .hub-outer-ring {
+            fill: url(#hubGradient);
+            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
+        }
+
+        .hub-inner-ring {
+            fill: url(#innerHubGradient);
+        }
+
+        .hub-center {
+            fill: #0a0a0a;
+        }
+
+        .glow-track {
+            fill: none;
+            stroke: #00d4ff;
+            stroke-width: 2;
+            opacity: 0.6;
+            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.8));
+        }
+
+        .omega-symbol {
+            font-family: 'Times New Roman', serif;
+            font-size: 48px;
+            font-weight: bold;
+            fill: #00d4ff;
+            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.9)) drop-shadow(0 0 30px rgba(0, 212, 255, 0.5));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .hub-bolt {
+            fill: #1a1a1a;
+            stroke: #333;
+            stroke-width: 1;
+        }
+
+        .hub-ring {
+            fill: none;
+            stroke: #222;
+            stroke-width: 1;
+        }
+
+        .arm-inner {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .arm-body {
+            fill: url(#armGradient);
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .arm-segment {
+            fill: none;
+            stroke: #1a1a1a;
+            stroke-width: 2;
+        }
+
+        .arm-hydraulic {
+            fill: none;
+            stroke: #00d4ff;
+            stroke-width: 1;
+            opacity: 0.4;
+        }
+
+        .arm-cap {
+            fill: url(#capGradient);
+            filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.4));
+        }
+
+        .arm-cap-glow {
+            fill: #00d4ff;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.8));
+        }
+
+        .vault-assembly {
+            transform-origin: 200px 200px;
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .ambient-glow {
+            fill: none;
+            stroke: url(#glowGradient);
+            stroke-width: 3;
+            opacity: 0.3;
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Mobile Performance Optimization */
+        @media (max-width: 768px) {
+            * {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .ambient-glow,
+            .arm-cap-glow,
+            .hub-bolt,
+            .track-dot {
+                filter: none !important;
+            }
+
+            .omega-symbol {
+                filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+            }
+
+            .card,
+            .input,
+            .cyber-switch,
+            .error-console {
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5) !important;
+            }
+        }
+
+
+        /* HUD Inputs */
+        .input {
+            margin: 20px;
+            width: 160px;
+            padding: 10px 20px;
+            font-size: 24px;
+            border-radius: 9999px;
+            box-shadow: inset 2px 5px 10px rgb(5, 5, 5), 0 0 15px var(--primary-glow);
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 143, 255, 0.4);
+            outline: none;
+            color: #00f0ff;
+            font-family: monospace;
+            text-align: center;
+            letter-spacing: 3px;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input:hover {
+            transform: translateY(-10px);
+            box-shadow: inset 2px 5px 10px rgb(5, 5, 5), 0 10px 30px rgba(0, 240, 255, 0.4);
+        }
+
+        .cyber-switch {
+            position: relative;
+            width: 280px;
+            height: 60px;
+            background: #0f1016;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            border: 1px solid #1f222e;
+            overflow: hidden;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cyber-switch:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
+        }
+
+        .cyber-label {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 2;
+            position: relative;
+            font-weight: bold;
+            color: #5c6b7f;
+            text-align: center;
+            line-height: 48px;
+        }
+
+        .cyber-highlight {
+            position: absolute;
+            width: calc((280px - 12px) / 3);
+            height: 48px;
+            left: 6px;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 14px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--primary);
+            box-shadow: none;
+            /* Remove blue glow lights */
+        }
+
+        #cyber-opt-1:checked~.cyber-highlight {
+            transform: translateX(0%);
+        }
+
+        #cyber-opt-2:checked~.cyber-highlight {
+            transform: translateX(100%);
+        }
+
+        #cyber-opt-3:checked~.cyber-highlight {
+            transform: translateX(200%);
+        }
+
+        .error-console {
+            width: 95vw;
+            max-width: 762px;
+            height: 100px;
+            margin: 10px auto 30px;
+            background: rgba(5, 5, 5, 0.98);
+            border: 1px solid #0059b3;
+            border-radius: 10px;
+            color: #00aaff;
+            padding: 8px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+
+        .ui-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            transform: scale(0.8);
+            transform-origin: top center;
+        }
+
+        @media (max-width: 480px) {
+            .ui-wrapper {
+                transform: scale(0.7);
+            }
+        }
+
+        /* Desktop UI Adjustments */
+        @media (min-width: 1025px) {
+            .ui-wrapper {
+                transform: scale(1.1);
+                transform-origin: top center;
+                padding-bottom: 10vh;
+            }
+
+            .machine-grid {
+                flex-direction: row;
+                max-width: 1200px;
+                justify-content: center;
+                gap: 40px;
+            }
+
+            .slots-row {
+                width: 320px;
+                /* Constrain width for horizontal layout */
+            }
+        }
+
+        @media (min-width: 1440px) {
+            .ui-wrapper {
+                transform: scale(1.3);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- From Uiverse.io by jaykdoe -->
+    <div class="container" id="void-container">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+        <div></div>
+    </div>
+
+
+    <div class="scanlines"></div>
+
+    <div class="ui-wrapper">
+        <img src="https://raw.githubusercontent.com/bencreizy/God_Lock/main/logo_omega.png" class="site-logo"
+            alt="Omega Logo" onerror="this.style.display='none';">
+
+
+        <div class="machine-grid">
+            <div class="slots-row" id="row-1"></div>
+            <div class="slots-row" id="row-2"></div>
+            <div class="slots-row" id="row-3"></div>
+        </div>
+
+
+        <input placeholder="00000" class="input" maxlength="5" inputmode="numeric">
+
+
+        <div class="cyber-switch">
+            <input type="radio" name="cyber-opt" id="cyber-opt-1" checked><label for="cyber-opt-1"
+                class="cyber-label">X</label>
+            <input type="radio" name="cyber-opt" id="cyber-opt-2"><label for="cyber-opt-2" class="cyber-label">Y</label>
+            <input type="radio" name="cyber-opt" id="cyber-opt-3"><label for="cyber-opt-3" class="cyber-label">Z</label>
+            <div class="cyber-highlight"></div>
+        </div>
+
+
+        <div class="card" id="terminal-card">
+            <div class="card-info">
+                <div class="loader-wrapper" id="loader-trigger" onclick="initTerminal()">
+                    <div class="loader">
+                        <div style="--i: 1; --inset:44%" class="box">
+                            <div class="logo">
+                                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <text x="50%" y="50%" text-anchor="middle" dy=".3em"
+                                        style="font-family: serif; font-size: 110px; font-weight: bold; fill: #00f0ff;">Ω</text>
+                                </svg>
+                            </div>
+                        </div>
+                        <div style="--i: 2; --inset:40%" class="box"></div>
+                        <div style="--i: 3; --inset:36%" class="box"></div>
+                        <div style="--i: 4; --inset:32%" class="box"></div>
+                        <div style="--i: 5; --inset:28%" class="box"></div>
+                        <div style="--i: 6; --inset:24%" class="box"></div>
+                        <div style="--i: 7; --inset:20%" class="box"></div>
+                        <div style="--i: 8; --inset:16%" class="box"></div>
+                    </div>
+                </div>
+                <div class="plusButton" id="btn-upload"><svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                    </svg></div>
+                <textarea id="hud-input" class="card-textarea" spellcheck="false"
+                    placeholder="DECRYPTED_BUFFER_READY..."></textarea>
+                <input type="file" id="file-selector" style="display:none">
+            </div>
+        </div>
+
+
+        <!-- OMEGA VAULT ASSEMBLY -->
+        <div class="omega-vault-container" id="omegaVault">
+            <div class="omega-vault" onclick="toggleVault()">
+                <svg class="omega-vault-svg" viewBox="0 0 400 400">
+                    <defs>
+                        <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#2a2a2a" />
+                            <stop offset="70%" stop-color="#1a1a1a" />
+                            <stop offset="100%" stop-color="#0a0a0a" />
+                        </radialGradient>
+                        <radialGradient id="innerHubGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#1a1a1a" />
+                            <stop offset="100%" stop-color="#0a0a0a" />
+                        </radialGradient>
+                        <linearGradient id="armGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#1a1a1a" />
+                            <stop offset="30%" stop-color="#2d2d2d" />
+                            <stop offset="50%" stop-color="#3a3a3a" />
+                            <stop offset="70%" stop-color="#2d2d2d" />
+                            <stop offset="100%" stop-color="#1a1a1a" />
+                        </linearGradient>
+                        <linearGradient id="capGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#3a3a3a" />
+                            <stop offset="50%" stop-color="#2a2a2a" />
+                            <stop offset="100%" stop-color="#1a1a1a" />
+                        </linearGradient>
+                        <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.6" />
+                            <stop offset="100%" stop-color="#00d4ff" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+                    <g class="vault-assembly" id="vaultAssembly">
+                        <circle cx="200" cy="200" r="190" class="ambient-glow" />
+                        <!-- Arm Groups -->
+                        <g class="arm-wrapper" style="transform: rotate(0deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-0">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(45deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-1">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(90deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-2">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(135deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-3">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(180deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-4">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(225deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-5">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(270deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-6">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="arm-wrapper" style="transform: rotate(315deg); transform-origin: 200px 200px;">
+                            <g class="arm-inner" id="arm-inner-7">
+                                <rect x="188" y="60" width="24" height="70" rx="4" class="arm-body" />
+                                <line x1="192" y1="75" x2="208" y2="75" class="arm-segment" />
+                                <line x1="192" y1="95" x2="208" y2="95" class="arm-segment" />
+                                <line x1="192" y1="115" x2="208" y2="115" class="arm-segment" />
+                                <line x1="196" y1="65" x2="196" y2="125" class="arm-hydraulic" />
+                                <line x1="204" y1="65" x2="204" y2="125" class="arm-hydraulic" />
+                                <ellipse cx="200" cy="52" rx="14" ry="10" class="arm-cap" />
+                                <ellipse cx="200" cy="52" rx="6" ry="4" class="arm-cap-glow" />
+                            </g>
+                        </g>
+                        <g class="hub">
+                            <circle cx="200" cy="200" r="70" class="hub-outer-ring" />
+                            <circle cx="200" cy="138" r="6" class="hub-bolt" />
+                            <circle cx="244" cy="156" r="6" class="hub-bolt" />
+                            <circle cx="262" cy="200" r="6" class="hub-bolt" />
+                            <circle cx="244" cy="244" r="6" class="hub-bolt" />
+                            <circle cx="200" cy="262" r="6" class="hub-bolt" />
+                            <circle cx="156" cy="244" r="6" class="hub-bolt" />
+                            <circle cx="138" cy="200" r="6" class="hub-bolt" />
+                            <circle cx="156" cy="156" r="6" class="hub-bolt" />
+                            <circle cx="200" cy="200" r="55" class="hub-ring" />
+                            <circle cx="200" cy="200" r="50" class="hub-inner-ring" />
+                            <circle cx="200" cy="200" r="42" class="glow-track" />
+                            <circle cx="200" cy="158" r="2" class="track-dot" />
+                            <circle cx="230" cy="167" r="2" class="track-dot" />
+                            <circle cx="242" cy="200" r="2" class="track-dot" />
+                            <circle cx="230" cy="233" r="2" class="track-dot" />
+                            <circle cx="200" cy="242" r="2" class="track-dot" />
+                            <circle cx="170" cy="233" r="2" class="track-dot" />
+                            <circle cx="158" cy="200" r="2" class="track-dot" />
+                            <circle cx="170" cy="167" r="2" class="track-dot" />
+                            <circle cx="200" cy="200" r="35" class="hub-center" />
+                            <text x="200" y="215" text-anchor="middle" class="omega-symbol">Ω</text>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+
+        <div id="error-console-output" class="error-console"></div>
+    </div>
+
+    <div id="void-scroll-track">
+        <div id="void-scroll-thumb"></div>
+    </div>
+
+
+    <script>
+        (function () {
+            // --- SECURITY MANIFOLD LOGIC ---
+            let isExpanded = true;
+            let isAnimating = false;
+            let rotationState = 0;
+            window.toggleVault = async function () {
+                if (isAnimating) return;
+
+                const fullV = vectorMatrix['1'] + vectorMatrix['2'] + vectorMatrix['3'];
+
+                // VALIDATION: Must have 15 digits for ANY operation
+                if (fullV.length < 15) {
+                    log("FRACTURE: VECTOR_INCOMPLETE", "error");
+                    return;
+                }
+
+                isAnimating = true;
+                const assembly = document.getElementById('vaultAssembly');
+
+                if (isExpanded) {
+                    // LOCKING: Retract arms
+                    rotationState += 360;
+                    assembly.style.transform = 'rotate(' + rotationState + 'deg)';
+                    for (let i = 0; i < 8; i++) {
+                        const reverseIndex = 7 - i;
+                        (function (index) {
+                            setTimeout(function () {
+                                const armInner = document.getElementById('arm-inner-' + index);
+                                if (armInner) {
+                                    armInner.style.transform = 'translateY(70px)';
+                                    armInner.style.opacity = '0';
+                                }
+                            }, reverseIndex * 80);
+                        })(i);
+                    }
+                } else {
+                    // UNLOCKING: Extend arms
+                    rotationState -= 360;
+                    assembly.style.transform = 'rotate(' + rotationState + 'deg)';
+                    for (let i = 0; i < 8; i++) {
+                        (function (index) {
+                            setTimeout(function () {
+                                const armInner = document.getElementById('arm-inner-' + index);
+                                if (armInner) {
+                                    armInner.style.transform = 'translateY(0)';
+                                    armInner.style.opacity = '1';
+                                }
+                            }, index * 80);
+                        })(i);
+                    }
+                }
+
+                // Execute the handshake cipher transition
+                await handleHandshake(isExpanded);
+
+                isExpanded = !isExpanded;
+                setTimeout(function () { isAnimating = false; }, 1200);
+            };
+
+
+            // --- HUD INITIALIZATION ---
+            window.initTerminal = function () {
+                const loader = document.getElementById('loader-trigger');
+                const textarea = document.getElementById('hud-input');
+                loader.classList.add('hidden');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    textarea.classList.add('active');
+                    textarea.focus();
+                    log("NEURAL_LINK_ESTABLISHED // TERMINAL_READY", "success");
+                }, 500);
+            };
+
+
+
+
+            // --- CELESTIAL ENGINE ---
+
+
+
+            function isCluttered(newLeft, newDelayRatio, existing) {
+                for (let p of existing) {
+                    const dx = Math.abs(newLeft - p.left);
+                    const dy = Math.abs(newDelayRatio - p.delayRatio) * 100;
+                    if (dx < 18 && dy < 18) return true;
+                }
+                return false;
+            }
+
+
+            function createPlanets() {
+                const container = document.getElementById('void-container');
+                const totalPlanets = 7;
+                const planetData = [];
+                for (let i = 0; i < totalPlanets; i++) {
+                    let left, delayRatio, attempts = 0;
+                    do { left = Math.random() * 90 + 5; delayRatio = Math.random(); attempts++; } while (isCluttered(left, delayRatio, planetData) && attempts < 50);
+                    planetData.push({ left, delayRatio });
+                    const pWrap = document.createElement('div');
+                    pWrap.className = 'planet-container';
+                    const planet = document.createElement('div');
+                    planet.className = 'planet';
+                    let size, duration;
+
+                    // Only generate dark cinematic planets
+                    size = Math.random() * 20 + 15;
+                    duration = Math.random() * 20 + 45;
+
+                    const delay = -delayRatio * duration;
+                    pWrap.style.left = left + '%';
+                    pWrap.style.animation = `floatUp ${duration}s linear ${delay}s infinite`;
+                    planet.style.width = size + 'px'; planet.style.height = size + 'px';
+
+                    const colors = [['#4a0e0e', '#1a0505'], ['#2d0e4a', '#10051a'], ['#631717', '#2b0a0a'], ['#411a5e', '#180a24']];
+                    const picked = colors[Math.floor(Math.random() * colors.length)];
+                    planet.style.background = `radial-gradient(circle at 30% 30%, ${picked[0]}, ${picked[1]})`;
+                    planet.style.boxShadow = `inset -5px -5px 15px rgba(0,0,0,0.9), 0 0 15px ${picked[0]}33`;
+
+                    pWrap.appendChild(planet);
+                    container.appendChild(pWrap);
+                }
+            }
+
+
+            // --- CRYPTEX GENERATOR ---
+            function generateCryptexHTML() {
+                let html = `<div class="cryptex-wrapper"><div class="end-cap end-cap-left"></div><div class="tumbler-assembly">`;
+                for (let i = 0; i < 5; i++) {
+                    html += `<div class="tumbler-container"><div class="glow-strip glow-strip-left"><div class="glow-dot"></div><div class="glow-dot"></div><div class="glow-dot"></div></div>
+                             <div class="tumbler">${Array.from({ length: 10 }, (_, f) => `<div class="tumbler-face" data-face="${f}"><div class="number-cell">${f}</div></div>`).join('')}</div>
+                             <div class="glow-strip glow-strip-right"><div class="glow-dot"></div><div class="glow-dot"></div><div class="glow-dot"></div></div></div>`;
+                }
+                html += `</div><div class="end-cap end-cap-right"></div></div>`;
+                return html;
+            }
+
+
+            // --- HANDSHAKE LOGIC ---
+            // UNIQUE_NOISE: A comprehensive, 1:1 mapping string with no duplicates.
+            const UNIQUE_NOISE = "Ω≈∆√∫µ†‡¶•ªº!@#$%^&*()_+{}:<>?|~ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:'\"\\/`[]-\n\t";
+            const NOISE_LEN = UNIQUE_NOISE.length;
+            const deriveSeed = function (v) { let h1 = 0x811c9dc5; for (let i = 0; i < v.length; i++) h1 = Math.imul(h1 ^ v.charCodeAt(i), 16777619); return Math.abs(h1) >>> 0; };
+            const executeSiphon = function (p, v, lock) {
+                if (!v || v.length !== 15) throw new Error("VECTOR_INCOMPLETE");
+                const s = deriveSeed(v);
+                return p.split('').map(function (c, i) {
+                    const idx = UNIQUE_NOISE.indexOf(c);
+                    if (idx === -1) return c;
+                    const shift = (s + (i * 17)) % NOISE_LEN;
+                    return UNIQUE_NOISE[lock ? (idx + shift) % NOISE_LEN : (idx - shift + (NOISE_LEN * 100)) % NOISE_LEN];
+                }).join('');
+            };
+
+
+            const hudInput = document.getElementById('hud-input');
+            const numInput = document.querySelector('.input');
+            const consoleOutput = document.getElementById('error-console-output');
+            const fileSelector = document.getElementById('file-selector');
+            let vectorMatrix = { '1': '', '2': '', '3': '' };
+            let saverActive = true;
+
+
+            const log = function (m, s) { const e = document.createElement('div'); e.textContent = '[' + new Date().toLocaleTimeString() + '] > ' + m; e.style.color = s === 'error' ? '#ff003c' : (s === 'success' ? '#00b4ff' : '#0066cc'); consoleOutput.appendChild(e); consoleOutput.scrollTop = consoleOutput.scrollHeight; };
+            const syncUI = function () { const activeAxis = document.querySelector('input[name="cyber-opt"]:checked').id.split('-').pop(); document.querySelectorAll('.slots-row').forEach(r => r.classList.remove('row-highlight')); document.getElementById('row-' + activeAxis).classList.add('row-highlight');['1', '2', '3'].forEach(id => { const tumblers = document.querySelectorAll('#row-' + id + ' .tumbler'); const val = vectorMatrix[id]; tumblers.forEach((t, i) => { t.style.setProperty('--rotation', (parseInt(val[i] || '0') * -36) + 'deg'); }); }); };
+
+
+            async function handleHandshake(isLocking) {
+                const fullV = vectorMatrix['1'] + vectorMatrix['2'] + vectorMatrix['3'];
+                if (fullV.length < 15) { log("FRACTURE: VECTOR_INCOMPLETE", "error"); return; }
+                log("HANDSHAKE: " + (isLocking ? 'LOCKING' : 'UNLOCKING') + "...");
+                await new Promise(r => setTimeout(r, 1200));
+                try {
+                    let result = executeSiphon(hudInput.value || "", fullV, isLocking);
+                    if (!isLocking && (result === "NULL_DATA" || result.trim() === "")) {
+                        result = "";
+                    }
+                    hudInput.value = result;
+                    log("SUCCESS: MANIFOLD SNAP", "success");
+                    vectorMatrix = { '1': '', '2': '', '3': '' };
+                    numInput.value = '';
+                    syncUI();
+                } catch (e) {
+                    log("FRACTURE: " + e.message, "error");
+                }
+            }
+
+
+            numInput.addEventListener('input', e => { const axis = document.querySelector('input[name="cyber-opt"]:checked').id.split('-').pop(); vectorMatrix[axis] = e.target.value.replace(/\D/g, '').substring(0, 5); syncUI(); });
+            document.querySelectorAll('input[name="cyber-opt"]').forEach(opt => opt.addEventListener('change', () => { numInput.value = vectorMatrix[opt.id.split('-').pop()]; syncUI(); numInput.focus(); }));
+            document.getElementById('btn-upload').addEventListener('click', e => { e.stopPropagation(); fileSelector.click(); });
+            fileSelector.addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { hudInput.value = ev.target.result; log("INGRESS: '" + f.name + "' LOADED"); }; r.readAsText(f); });
+
+            // HUD interaction to dismiss loader - only when clicking inside the terminal card
+            document.getElementById('terminal-card').addEventListener('click', function (e) {
+                const loader = document.getElementById('loader-trigger');
+                if (loader && !loader.classList.contains('hidden')) {
+                    window.initTerminal();
+                }
+            }, true);
+
+
+            window.onload = function () {
+                // Ensure page starts at the top
+                window.scrollTo(0, 0);
+
+                createPlanets();
+                document.getElementById('row-1').innerHTML = generateCryptexHTML();
+                document.getElementById('row-2').innerHTML = generateCryptexHTML();
+                document.getElementById('row-3').innerHTML = generateCryptexHTML();
+                syncUI();
+
+                // UI Scroll Logic
+                const scrollThumb = document.getElementById('void-scroll-thumb');
+                const scrollTrack = document.getElementById('void-scroll-track');
+                const updateScroll = () => {
+                    const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+                    if (scrollTotal <= 0) {
+                        scrollTrack.style.opacity = '0';
+                        return;
+                    }
+                    scrollTrack.style.opacity = '1';
+                    const scrollPercent = (window.pageYOffset / scrollTotal);
+                    const maxTop = scrollTrack.offsetHeight - scrollThumb.offsetHeight;
+                    scrollThumb.style.transform = `translateY(${scrollPercent * maxTop}px)`;
+                };
+                window.addEventListener('scroll', updateScroll);
+                window.addEventListener('resize', updateScroll);
+                updateScroll();
+
+                log("Ω_KERNEL_READY // VOID_MECHANICAL_INIT");
+            };
+        })();
+    </script>
+</body>
+
+</html>��25file:///c:/Users/User/Desktop/VRFZ%20Empty/index.html
